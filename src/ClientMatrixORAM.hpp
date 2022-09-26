@@ -5,10 +5,11 @@
 class ClientMatrixORAM {
 private:
 
+
 public:
     ClientMatrixORAM();
     ~ClientMatrixORAM();
     int initialize();
-    int access(TYPE_INDEX blockID, string op);
+    int access(TYPE_INDEX blockID, string op, TYPE_DATA& data); 
 };
 # endif
