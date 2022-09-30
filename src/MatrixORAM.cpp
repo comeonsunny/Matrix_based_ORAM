@@ -1,8 +1,8 @@
 #include "MatrixORAM.hpp"
 #include "Block.hpp"
-#include <filesystem>
+#include "Config.hpp"
+
 #include <fstream>
-namespace fs = std::filesystem;
 MatrixORAM::MatrixORAM(TYPE_INDEX block_size, TYPE_INDEX db_size, TYPE_INDEX real_block_num, TYPE_INDEX length_block_num, TYPE_INDEX total_block_num){
     this->block_size = block_size;
     this->db_size = db_size;
@@ -13,13 +13,16 @@ MatrixORAM::MatrixORAM(TYPE_INDEX block_size, TYPE_INDEX db_size, TYPE_INDEX rea
 MatrixORAM::~MatrixORAM(){
 }
 int MatrixORAM::build_db(vector<TYPE_INDEX>& shuffle_id) {
-    // prepare the directory to store the blocks
-    fs::path p = fs::current_path();
-    fs::create_directory(p / "Data");
-    fs::create_directory(p / "Data" / "DataBase");
     /* create a client_db.db file in the current path /Data/DataBase */
+    fs::path p = CURRENT_PATH;
+    for (int i = 0; i < DB_PATH_DIR.size(); i++) {
+        p /= DB_PATH_DIR[i];
+        if (!fs::exists(p)) {
+            fs::create_directory(p);
+        }
+    }
     std::fstream db_file;
-    db_file.open(p / "Data" / "DataBase" / "client_db.db", std::ios::out | std::ios::binary);
+    db_file.open(p / "client.db", std::ios::out | std::ios::binary);
     /* 1 create the real blocks and dummy blocks */
     for (TYPE_INDEX i = 0; i < this->total_block_num; ++i) {
         Block block(i, this->block_size);
@@ -33,5 +36,5 @@ int MatrixORAM::build_db(vector<TYPE_INDEX>& shuffle_id) {
     return 0;
 }
 int MatrixORAM::send_db_to_server() {
-    
+    return 0;
 }

@@ -8,3 +8,4 @@ Data/DataBase/client_db.db
 a.out
 *.out
 a.out
+*.db
