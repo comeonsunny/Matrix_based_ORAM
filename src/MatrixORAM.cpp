@@ -12,7 +12,7 @@ MatrixORAM::MatrixORAM(TYPE_INDEX block_size, TYPE_INDEX db_size, TYPE_INDEX rea
 }
 MatrixORAM::~MatrixORAM(){
 }
-int MatrixORAM::build_db(vector<TYPE_INDEX>& shuffle_id){
+int MatrixORAM::build_db(vector<TYPE_INDEX>& shuffle_id) {
     // prepare the directory to store the blocks
     fs::path p = fs::current_path();
     fs::create_directory(p / "Data");
@@ -31,4 +31,7 @@ int MatrixORAM::build_db(vector<TYPE_INDEX>& shuffle_id){
     }
     db_file.close();
     return 0;
+}
+int MatrixORAM::send_db_to_server() {
+    
 }
