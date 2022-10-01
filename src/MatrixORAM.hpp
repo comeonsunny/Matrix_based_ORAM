@@ -11,6 +11,10 @@ private:
     TYPE_INDEX real_block_num;
     TYPE_INDEX length_block_num;
     TYPE_INDEX total_block_num;
+    /* parameters about file path */
+    fs::path p;
+    /* parameters about connection */
+    std::string command_recv;
 public:
     MatrixORAM(TYPE_INDEX block_size, TYPE_INDEX db_size, TYPE_INDEX real_block_num, TYPE_INDEX length_block_num, TYPE_INDEX total_block_num);
     ~MatrixORAM();

@@ -45,8 +45,9 @@ int ClientMatrixORAM::initialize() {
     }
     // build real blocks and dummy blocks and store them in the disk in the name of client_db.db
     MatrixORAM matrix_oram(this->block_size, this->db_size, this->real_block_num, this->length_block_num, this->total_block_num);
-    matrix_oram.build_db(this->shuffle_id);    
-
+    matrix_oram.build_db(this->shuffle_id); 
+    // send the blocks to the server
+    matrix_oram.send_db_to_server();   
     return 0;
 }
 

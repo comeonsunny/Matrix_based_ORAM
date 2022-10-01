@@ -3,6 +3,7 @@
 
 #include <filesystem>
 #include <vector>
+#include <string>
 namespace fs = std::filesystem;
 //===PATH_DIR================================================
 // prepare the directory to store the blocks
@@ -15,4 +16,10 @@ struct TYPE_POS_MAP {
     TYPE_INDEX row_index;
     TYPE_INDEX col_index; 
 };
+//=== PARAMETERS ABOUT CONNECTION =============================
+static std::string SERVER_IP = "localhost";
+static std::string SERVER_PORT = "5555";
+/* COMMANDS */
+static std::string COMMAND_SEND_DB = "send_db";
+static std::string COMMAND_SUCCESS = "success";
 #endif
