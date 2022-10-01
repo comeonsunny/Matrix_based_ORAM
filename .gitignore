@@ -9,3 +9,4 @@ a.out
 *.out
 a.out
 *.db
+build/
