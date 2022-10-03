@@ -50,7 +50,7 @@ int ServerMatrixORAM::recv_db_from_client(ZmqSocket_server& zmq_server){
     // step2 : receive the database from the client
     for (TYPE_INDEX i = 0; i < this->total_block_num; ++i) {
         zmq_server.recv(buffer_in_str);
-        ofs.seekp(i * this->block_size * sizeof(TYPE_DATA));
+        ofs.seekp(i * this->block_size * sizeof(TYPE_DATA), std::ios::beg);
         ofs.write(buffer_in_str.c_str(), this->block_size * sizeof(TYPE_DATA));
         zmq_server.send(COMMAND_SUCCESS);
     }

@@ -12,7 +12,7 @@ private:
     TYPE_INDEX length_block_num;
     TYPE_INDEX total_block_num;
     /* parameters about file path */
-    fs::path p;
+    fs::path p_db;
     /* parameters about connection */
     std::string command_recv;
 public:

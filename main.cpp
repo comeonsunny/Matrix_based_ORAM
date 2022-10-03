@@ -20,6 +20,11 @@ int main(int argc, char *argv[]) {
     static TYPE_INDEX REAL_BLOCK_NUM = ceil((double)DB_SIZE / (BLOCK_SIZE * sizeof(TYPE_DATA)));
     static TYPE_INDEX LENGTH_BLOCK_NUM = ceil(sqrt(REAL_BLOCK_NUM));
     static TYPE_INDEX TOTAL_BLOCK_NUM = LENGTH_BLOCK_NUM * LENGTH_BLOCK_NUM;
+    cout << "BLOCK_SIZE: " << BLOCK_SIZE << endl;
+    cout << "DB_SIZE: " << DB_SIZE << endl;
+    cout << "REAL_BLOCK_NUM: " << REAL_BLOCK_NUM << endl;
+    cout << "LENGTH_BLOCK_NUM: " << LENGTH_BLOCK_NUM << endl;
+    cout << "TOTAL_BLOCK_NUM: " << TOTAL_BLOCK_NUM << endl;
     if (choice == 1) {
         //=== Client ===============================================
         ClientMatrixORAM client(BLOCK_SIZE, DB_SIZE, REAL_BLOCK_NUM, LENGTH_BLOCK_NUM, TOTAL_BLOCK_NUM);
