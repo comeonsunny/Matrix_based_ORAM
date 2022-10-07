@@ -50,6 +50,28 @@ int ClientMatrixORAM::initialize() {
     matrix_oram.send_db_to_server();   
     return 0;
 }
+/**
+ * Function Name: access
+ *
+ * Description: 
+ *    access a data block indicated by blockID
+ *    if op == read, return the target data into data
+ *    if op == update, update the corresponding block
+ * 
+ * @return 0 if successful
+ */ 
+int ClientMatrixORAM::access(TYPE_INDEX blockID, std::string op, char* data) {
+    // send the access request to the server
+
+    // receive and decrypt a row or column blocks from the server
+
+    // generate a random integer range from 0 to this->length_block_num - 1 and update the position map
+
+    // swap the block indicated by blockID with the block indicated by the random integer
+
+    // re-encrypte and send the updated row or column blocks to the server
+    return 0;
+}
 
 void ClientMatrixORAM::test() {
     // cout all the elements in the position_map
