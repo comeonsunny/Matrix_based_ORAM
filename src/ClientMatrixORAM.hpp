@@ -18,7 +18,7 @@ public:
     ClientMatrixORAM(TYPE_INDEX block_size, TYPE_INDEX db_size, TYPE_INDEX real_block_num, TYPE_INDEX length_block_num, TYPE_INDEX total_block_num);
     ~ClientMatrixORAM();
     int initialize();
-    int access(TYPE_INDEX blockID, std::string op, TYPE_DATA& data); 
+    int access(TYPE_INDEX blockID, std::string op, char* data); 
 
     void test();
 };

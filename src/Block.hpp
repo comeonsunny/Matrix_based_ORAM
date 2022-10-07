@@ -1,27 +1,25 @@
 #ifndef BLOCK_HPP
 #define BLOCK_HPP
 #include "Config.hpp"
-#include <cstring>
+// a block class
 class Block{
-private:
-    TYPE_INDEX blockID;
-    TYPE_INDEX block_size;
-public:
-    Block(TYPE_INDEX blockID, TYPE_INDEX block_size);
-    ~Block();
-    char* data;
+    public:
+        TYPE_INDEX index;
+        TYPE_INDEX data_size;
+        Block(TYPE_INDEX index, TYPE_INDEX block_size);
+        ~Block();
+        
+        char* decrypt();
+        char* encrypt();
+        // interactive operations
+        char* get_data();
+        unsigned char* get_iv();
+        void set_data(char* data);
+        void set_iv(unsigned char* iv);
+
+    private:
+        char *data;
+        unsigned char *iv;
 };
-
-Block::Block(TYPE_INDEX blockID, TYPE_INDEX block_size){
-    this->blockID = blockID;
-    this->block_size = block_size * sizeof(TYPE_DATA);
-    this->data = new char[block_size];
-    memset(this->data, 0, block_size);
-    // write blockID to data
-    memcpy(this->data, &blockID, sizeof(TYPE_INDEX));
-}
-
-Block::~Block(){
-}
 
 #endif
