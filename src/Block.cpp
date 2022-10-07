@@ -1,6 +1,4 @@
 #include "Block.hpp"
-#include "config.hpp"
-
 #include <tomcrypt.h>
 #include <cstring>
 #include <cstdlib>
