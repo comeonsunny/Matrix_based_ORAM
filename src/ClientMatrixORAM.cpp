@@ -1,5 +1,6 @@
 #include "ClientMatrixORAM.hpp"
 #include "MatrixORAM.hpp"
+#include "Config.hpp"
 
 #include <random>
 #include <algorithm>
@@ -54,22 +55,36 @@ int ClientMatrixORAM::initialize() {
  * Function Name: access
  *
  * Description: 
- *    access a data block indicated by blockID
- *    if op == read, return the target data into data
- *    if op == update, update the corresponding block
+ *    access the block with blockID
+ *    if is_write is true, update the corresponding block with data
+ *    if is_write is false, read the corresponding block and store it in data
+ *    step 1: send the access request to the server and get the response and send the index of interested block's row or column to the server
+ *    step 2: receive and decrypt the data blocks in a row or a column from the server
+ *    step 3: generate a random integer range from 0 to length_block_num - 1 
+ *    step 4: swap the block with blockID and the block with the random integer
+ *    step 5: update the position map and re-encrypt the data blocks in a row or a column
+ *    step 6: send the updated data blocks to the server
+ *    step 7: receive the corresponding successful message from the server
  * 
  * @return 0 if successful
  */ 
-int ClientMatrixORAM::access(TYPE_INDEX blockID, std::string op, char* data) {
-    // send the access request to the server
-
-    // receive and decrypt a row or column blocks from the server
-
-    // generate a random integer range from 0 to this->length_block_num - 1 and update the position map
-
-    // swap the block indicated by blockID with the block indicated by the random integer
-
-    // re-encrypte and send the updated row or column blocks to the server
+int ClientMatrixORAM::access(TYPE_INDEX blockID, TYPE_DATA* data, bool is_write) {
+    // gain the index of interested block's row or column in the position map
+    TYPE_INDEX row_index, col_index;
+    MatrixORAM matrix_oram(this->block_size, this->db_size, this->real_block_num, this->length_block_num, this->total_block_num);
+    TYPE_INDEX swap_block_index;
+    if (IS_ROW) {
+        row_index = position_map[blockID].row_index;
+        swap_block_index = matrix_oram.access(blockID, row_index, data, is_write);
+        // update the position map
+        swap(position_map[blockID].col_index, position_map[swap_block_index].col_index); 
+    } else {
+        col_index = position_map[blockID].col_index;
+        swap_block_index = matrix_oram.access(blockID, col_index, data, is_write);
+        // update the position map
+        swap(position_map[blockID].row_index, position_map[swap_block_index].row_index);
+    }
+    IS_ROW = !IS_ROW;
     return 0;
 }
 

@@ -6,6 +6,11 @@
 #include <fstream>
 #include <cassert>
 #include <iostream>
+#include <random>
+/*
+@author: SunChangqi 
+@data:2022/10/19
+*/
 MatrixORAM::MatrixORAM(TYPE_INDEX block_size, TYPE_INDEX db_size, TYPE_INDEX real_block_num, TYPE_INDEX length_block_num, TYPE_INDEX total_block_num){
     this->block_size = block_size;
     this->db_size = db_size;
@@ -58,6 +63,7 @@ int MatrixORAM::send_db_to_server() {
     // 1.2 receive the command COMMAND_SUCCESS from server
     zmq_client.recv(command_recv);
     assert(command_recv == COMMAND_SUCCESS);
+    command_recv.clear();
     /* 2 open the client_db.db file */
     std::fstream db_file;
     db_file.open(p_db / "client.db", std::ios::in | std::ios::binary);
@@ -93,6 +99,7 @@ int MatrixORAM::send_db_to_server() {
         // receive the command COMMAND_SUCCESS from server
         zmq_client.recv(command_recv);
         assert(command_recv == COMMAND_SUCCESS);
+        command_recv.clear();
         delete[] buffer_out;
         bar_send.update();
     }
@@ -100,4 +107,100 @@ int MatrixORAM::send_db_to_server() {
     std::cout << std::endl;
     std::cout << "**********************************************************" << std::endl;
     return 0;
+}
+int MatrixORAM::access(TYPE_INDEX blockID, TYPE_INDEX index, TYPE_DATA* data, bool is_write) {
+    ZmqSocket_client zmq_client(SERVER_IP, SERVER_PORT);
+    // send the command COMMAND_ACCESS to server and test the response COMMAND_SUCCESS
+    zmq_client.send(COMMAND_ACCESS);
+    zmq_client.recv(command_recv);
+    assert(command_recv == COMMAND_SUCCESS);
+    command_recv.clear();
+    // send the index to server and test the response COMMAND_SUCCESS
+    std::string index_str((char*)&index, sizeof(TYPE_INDEX));
+    zmq_client.send(index_str);
+    zmq_client.recv(command_recv);
+    assert(command_recv == COMMAND_SUCCESS);
+    command_recv.clear();
+    // receive a row or a column blocks from server and decrypt them and store them in the stash file
+    std::string buffer_in;
+    fs::path p_stash = p_db / "stash.temp";
+    ofstream stash_file(p_stash, ios::out | ios::binary);
+    Block* block = new Block(0, this->block_size);
+    TYPE_INDEX block_id;
+    TYPE_INDEX block_index;
+    for (TYPE_INDEX i = 0; i < this->length_block_num; ++i) {
+        zmq_client.recv(buffer_in);
+        // decrypt the data
+        char* iv = new char[IV_SIZE];
+        memcpy(iv, buffer_in.c_str(), IV_SIZE);
+        block->set_iv((unsigned char*)iv);
+        char* data = new char[this->block_size * sizeof(TYPE_DATA)];
+        memcpy(data, buffer_in.c_str() + IV_SIZE, this->block_size * sizeof(TYPE_DATA));
+        block->set_data(data);
+        block->decrypt();
+        // get the block_id from the decrypted data
+        block_id = *(TYPE_INDEX*)block->get_data();
+        if (block_id == blockID) {
+            block_index = i;
+            // get the data from the block
+            memcpy((char*)data, block->get_data(), this->block_size * sizeof(TYPE_DATA));
+        }
+        // write the data to the stash file
+        stash_file.write(block->get_data(), this->block_size * sizeof(TYPE_DATA));
+    }
+    stash_file.close();
+    delete block;
+    // send the command COMMAND_SUCCESS to server
+    zmq_client.send(COMMAND_SUCCESS);
+    // generate a random integer range from 0 to length_block_num - 1
+    std::random_device rd;
+    std::mt19937 g(rd());
+    std::uniform_int_distribution<> dis(0, this->length_block_num - 1);
+    TYPE_INDEX random_int = dis(g);
+    // if i != random_int, swap the block at index i and the block at index random_int
+    fstream stash_file_swap(p_stash, ios::in | ios::out | ios::binary);
+    TYPE_INDEX block_id_swap;
+    if (block_index != random_int) {
+        char* buffer_swap = new char[this->block_size * sizeof(TYPE_DATA)];
+        // read the block at index random_int to the buffer_swap
+        stash_file_swap.seekg(random_int * this->block_size * sizeof(TYPE_DATA), ios::beg);
+        stash_file_swap.read(buffer_swap, this->block_size * sizeof(TYPE_DATA));
+        block_id_swap = *(TYPE_INDEX*)buffer_swap;
+        // write the block at random_int to the block at index block_index
+        stash_file_swap.seekp(block_index * this->block_size * sizeof(TYPE_DATA), ios::beg);
+        stash_file_swap.write(buffer_swap, this->block_size * sizeof(TYPE_DATA));
+        // write the data to the block at index random_int
+        stash_file_swap.seekp(random_int * this->block_size * sizeof(TYPE_DATA), ios::beg);
+        stash_file_swap.write((char*)data, this->block_size * sizeof(TYPE_DATA));
+        delete[] buffer_swap;
+    } else {
+        block_id_swap = blockID;
+    }
+    stash_file_swap.close();
+    // re-encrypt the blocks in the stash file and send them to the server
+    ifstream stash_file_re(p_stash, ios::in | ios::binary);
+    Block* block_re = new Block(0, this->block_size);
+    for (TYPE_INDEX i = 0; i < this->length_block_num; ++i) {
+        // read the block from the stash file
+        char* data_re = new char[this->block_size * sizeof(TYPE_DATA)];
+        stash_file_re.read(data_re, this->block_size * sizeof(TYPE_DATA));
+        block_re->set_data(data_re);
+        // encrypt the block
+        block_re->encrypt();
+        // send the block to the server
+        char* buffer_out = new char[IV_SIZE + this->block_size * sizeof(TYPE_DATA)];
+        memcpy(buffer_out, block_re->get_iv(), IV_SIZE);
+        memcpy(buffer_out + IV_SIZE, block_re->get_data(), this->block_size * sizeof(TYPE_DATA));
+        std::string buffer_out_str(buffer_out, IV_SIZE + this->block_size * sizeof(TYPE_DATA));
+        zmq_client.send(buffer_out_str);
+        delete[] buffer_out;
+        delete[] data_re;
+    }
+    stash_file_re.close();
+    delete block_re;
+    // receive the command COMMAND_SUCCESS from the server
+    zmq_client.recv(command_recv);
+    assert(command_recv == COMMAND_SUCCESS);
+    command_recv.clear();
+    return block_id_swap;
 }
