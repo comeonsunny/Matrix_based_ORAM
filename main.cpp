@@ -29,7 +29,12 @@ int main(int argc, char *argv[]) {
         //=== Client ===============================================
         ClientMatrixORAM client(BLOCK_SIZE, DB_SIZE, REAL_BLOCK_NUM, LENGTH_BLOCK_NUM, TOTAL_BLOCK_NUM);
         client.initialize();
-        client.test();
+        TYPE_DATA* data = new TYPE_DATA[BLOCK_SIZE];
+        for (TYPE_INDEX i = 0; i < REAL_BLOCK_NUM; i++) {
+            client.access(i, data, false);
+            TYPE_INDEX index = *(TYPE_INDEX*)data;
+            cout << "index: " << index << endl;
+        }
     } else if (choice == 2) {
         //=== Server ===============================================
         ServerMatrixORAM server(BLOCK_SIZE, DB_SIZE, REAL_BLOCK_NUM, LENGTH_BLOCK_NUM, TOTAL_BLOCK_NUM);

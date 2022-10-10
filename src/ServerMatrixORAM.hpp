@@ -20,6 +20,7 @@ public:
     ~ServerMatrixORAM();
     int run();
     int recv_db_from_client(ZmqSocket_server& zmq_server);
+    int retrieve_row_or_column(ZmqSocket_server& zmq_server);
 };
 
 #endif

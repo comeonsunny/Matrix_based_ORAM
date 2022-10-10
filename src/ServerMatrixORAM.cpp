@@ -36,6 +36,16 @@ int ServerMatrixORAM::run(){
             cout<< "[Server] Receiving ORAM Data...Done" <<endl;
             cout << "=================================================================" << endl;
             cout<<endl;
+        } else if (command_recv == COMMAND_ACCESS) {
+            cout<<endl;
+            cout << "=================================================================" << endl;
+            cout<< "[Server] Retrieving a row or a column from ORAM data..." <<endl;
+            cout << "=================================================================" << endl;
+            retrieve_row_or_column(zmq_server);
+            cout << "=================================================================" << endl;
+            cout<< "[Server] Retrieving a row or a column from ORAM data...Done" <<endl;
+            cout << "=================================================================" << endl;
+            cout<<endl;
         }
     }
     return 0;
@@ -56,5 +66,59 @@ int ServerMatrixORAM::recv_db_from_client(ZmqSocket_server& zmq_server){
     }
     ofs.close();
     return 0;
-
+}
+int ServerMatrixORAM::retrieve_row_or_column(ZmqSocket_server& zmq_server) {
+    // clear the buffer
+    buffer_in_str.clear();
+    // step1 : receive the row or column index from the client
+    zmq_server.recv(buffer_in_str);
+    zmq_server.send(COMMAND_SUCCESS);
+    // step2 : check global variable of IS_ROW to know whether send the row or column to the client
+    std::fstream fs(p / "server.db", std::ios::binary | std::ios::in | std::ios::out);
+    if (IS_ROW) {
+        /*get the row_index from buffer_in_str*/
+        TYPE_INDEX row_index = std::stoi(buffer_in_str);
+        buffer_in_str.clear();
+        /*read row block indexed by row_index from server.db and send them to the client*/
+        TYPE_INDEX start_index = row_index * this->length_block_num;
+        fs.seekg(start_index * (this->block_size * sizeof(TYPE_DATA) + IV_SIZE), std::ios::beg);
+        for (TYPE_INDEX i = 0; i < this->length_block_num; ++i) {
+            fs.read(buffer_in_str.data(), this->block_size * sizeof(TYPE_DATA) + IV_SIZE);
+            zmq_server.send(buffer_in_str);
+        }
+        zmq_server.recv(command_recv);
+        assert(command_recv == COMMAND_SUCCESS);
+        command_recv.clear();
+        buffer_in_str.clear();
+        // step3 : receive the re-encrypted row from the client and store them in server.db
+        fs.seekp(start_index * (this->block_size * sizeof(TYPE_DATA) + IV_SIZE), std::ios::beg);
+        for (TYPE_INDEX i = 0; i < this->length_block_num; ++i) {
+            zmq_server.recv(buffer_in_str);
+            fs.write(buffer_in_str.data(), this->block_size * sizeof(TYPE_DATA) + IV_SIZE);
+        }
+    } else {
+        /*get the column_index from buffer_in_str*/
+        TYPE_INDEX column_index = std::stoi(buffer_in_str);
+        buffer_in_str.clear();
+        /*read column block indexed by column_index from server.db and send them to the client*/
+        fs.seekg(column_index * (this->block_size * sizeof(TYPE_DATA) + IV_SIZE), std::ios::beg);
+        for (TYPE_INDEX i = 0; i < this->length_block_num; ++i) {
+            fs.seekg((column_index + i * this->length_block_num) * (this->block_size * sizeof(TYPE_DATA) + IV_SIZE), std::ios::beg);
+            fs.read(buffer_in_str.data(), this->block_size * sizeof(TYPE_DATA) + IV_SIZE);
+            zmq_server.send(buffer_in_str);
+        }
+        zmq_server.recv(command_recv);
+        assert(command_recv == COMMAND_SUCCESS);
+        command_recv.clear();
+        buffer_in_str.clear();
+        // step3 : receive the re-encrypted column from the client and store them in server.db
+        for (TYPE_INDEX i = 0; i < this->length_block_num; ++i) {
+            zmq_server.recv(buffer_in_str);
+            fs.seekp((column_index + i * this->length_block_num) * (this->block_size * sizeof(TYPE_DATA) + IV_SIZE), std::ios::beg);
+            fs.write(buffer_in_str.data(), this->block_size * sizeof(TYPE_DATA) + IV_SIZE);
+        }
+    }
+    zmq_server.send(COMMAND_SUCCESS);
+    fs.close(); 
+    return 0;
 }
