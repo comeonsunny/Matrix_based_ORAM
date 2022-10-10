@@ -72,12 +72,12 @@ int ServerMatrixORAM::retrieve_row_or_column(ZmqSocket_server& zmq_server) {
     buffer_in_str.clear();
     // step1 : receive the row or column index from the client
     zmq_server.recv(buffer_in_str);
-    zmq_server.send(COMMAND_SUCCESS);
+    // zmq_server.send(COMMAND_SUCCESS);
     // step2 : check global variable of IS_ROW to know whether send the row or column to the client
     std::fstream fs(p / "server.db", std::ios::binary | std::ios::in | std::ios::out);
     if (IS_ROW) {
         /*get the row_index from buffer_in_str*/
-        TYPE_INDEX row_index = std::stoi(buffer_in_str);
+        TYPE_INDEX row_index = *(TYPE_INDEX*)buffer_in_str.c_str();
         buffer_in_str.clear();
         /*read row block indexed by row_index from server.db and send them to the client*/
         TYPE_INDEX start_index = row_index * this->length_block_num;
@@ -98,7 +98,7 @@ int ServerMatrixORAM::retrieve_row_or_column(ZmqSocket_server& zmq_server) {
         }
     } else {
         /*get the column_index from buffer_in_str*/
-        TYPE_INDEX column_index = std::stoi(buffer_in_str);
+        TYPE_INDEX column_index = *(TYPE_INDEX*)buffer_in_str.c_str();
         buffer_in_str.clear();
         /*read column block indexed by column_index from server.db and send them to the client*/
         fs.seekg(column_index * (this->block_size * sizeof(TYPE_DATA) + IV_SIZE), std::ios::beg);
