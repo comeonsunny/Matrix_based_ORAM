@@ -7,6 +7,7 @@
 #include <cassert>
 #include <iostream>
 #include <random>
+#include <string>
 /*
 @author: SunChangqi 
 @data:2022/10/19
@@ -118,18 +119,19 @@ int MatrixORAM::access(TYPE_INDEX blockID, TYPE_INDEX index, TYPE_DATA* data, bo
     // send the index to server and test the response COMMAND_SUCCESS
     std::string index_str((char*)&index, sizeof(TYPE_INDEX));
     zmq_client.send(index_str);
-    zmq_client.recv(command_recv);
-    assert(command_recv == COMMAND_SUCCESS);
-    command_recv.clear();
+    // zmq_client.recv(command_recv);
+    // assert(command_recv == COMMAND_SUCCESS); 
+    // command_recv.clear();
     // receive a row or a column blocks from server and decrypt them and store them in the stash file
     std::string buffer_in;
     fs::path p_stash = p_db / "stash.temp";
-    ofstream stash_file(p_stash, ios::out | ios::binary);
+    std::ofstream stash_file(p_stash, ios::out | ios::binary);
     Block* block = new Block(0, this->block_size);
     TYPE_INDEX block_id;
     TYPE_INDEX block_index;
     for (TYPE_INDEX i = 0; i < this->length_block_num; ++i) {
         zmq_client.recv(buffer_in);
+        zmq_client.send(COMMAND_SUCCESS);
         // decrypt the data
         char* iv = new char[IV_SIZE];
         memcpy(iv, buffer_in.c_str(), IV_SIZE);
@@ -150,8 +152,9 @@ int MatrixORAM::access(TYPE_INDEX blockID, TYPE_INDEX index, TYPE_DATA* data, bo
     }
     stash_file.close();
     delete block;
-    // send the command COMMAND_SUCCESS to server
-    zmq_client.send(COMMAND_SUCCESS);
+    zmq_client.recv(command_recv);
+    assert(command_recv == COMMAND_SUCCESS);
+    command_recv.clear();
     // generate a random integer range from 0 to length_block_num - 1
     std::random_device rd;
     std::mt19937 g(rd());
@@ -193,14 +196,13 @@ int MatrixORAM::access(TYPE_INDEX blockID, TYPE_INDEX index, TYPE_DATA* data, bo
         memcpy(buffer_out + IV_SIZE, block_re->get_data(), this->block_size * sizeof(TYPE_DATA));
         std::string buffer_out_str(buffer_out, IV_SIZE + this->block_size * sizeof(TYPE_DATA));
         zmq_client.send(buffer_out_str);
+        zmq_client.recv(command_recv);
+        assert(command_recv == COMMAND_SUCCESS);
+        command_recv.clear();
         delete[] buffer_out;
         delete[] data_re;
     }
     stash_file_re.close();
     delete block_re;
-    // receive the command COMMAND_SUCCESS from the server
-    zmq_client.recv(command_recv);
-    assert(command_recv == COMMAND_SUCCESS);
-    command_recv.clear();
     return block_id_swap;
 }

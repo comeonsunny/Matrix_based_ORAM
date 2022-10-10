@@ -20,8 +20,8 @@ ServerMatrixORAM::~ServerMatrixORAM(){
 }
 int ServerMatrixORAM::run(){
     std::cout<< "[Server] Socket is OPEN on << " << SERVER_IP << ":" << SERVER_PORT << std::endl;
-    ZmqSocket_server zmq_server(SERVER_PORT);
     while (true) {
+        ZmqSocket_server zmq_server(SERVER_PORT);
         std::cout << "[Server] Waiting for a command from client..." << std::endl;
         zmq_server.recv(command_recv);
         std::cout << "[Server] Received command: " << command_recv << std::endl;
@@ -72,7 +72,7 @@ int ServerMatrixORAM::retrieve_row_or_column(ZmqSocket_server& zmq_server) {
     buffer_in_str.clear();
     // step1 : receive the row or column index from the client
     zmq_server.recv(buffer_in_str);
-    // zmq_server.send(COMMAND_SUCCESS);
+    std::cout << "Test" << std::endl;
     // step2 : check global variable of IS_ROW to know whether send the row or column to the client
     std::fstream fs(p / "server.db", std::ios::binary | std::ios::in | std::ios::out);
     if (IS_ROW) {
@@ -85,15 +85,17 @@ int ServerMatrixORAM::retrieve_row_or_column(ZmqSocket_server& zmq_server) {
         for (TYPE_INDEX i = 0; i < this->length_block_num; ++i) {
             fs.read(buffer_in_str.data(), this->block_size * sizeof(TYPE_DATA) + IV_SIZE);
             zmq_server.send(buffer_in_str);
+            zmq_server.recv(command_recv);
+            assert(command_recv == COMMAND_SUCCESS);
+            command_recv.clear();
         }
-        zmq_server.recv(command_recv);
-        assert(command_recv == COMMAND_SUCCESS);
-        command_recv.clear();
         buffer_in_str.clear();
+        zmq_server.send(COMMAND_SUCCESS);
         // step3 : receive the re-encrypted row from the client and store them in server.db
         fs.seekp(start_index * (this->block_size * sizeof(TYPE_DATA) + IV_SIZE), std::ios::beg);
         for (TYPE_INDEX i = 0; i < this->length_block_num; ++i) {
             zmq_server.recv(buffer_in_str);
+            zmq_server.send(COMMAND_SUCCESS);
             fs.write(buffer_in_str.data(), this->block_size * sizeof(TYPE_DATA) + IV_SIZE);
         }
     } else {
@@ -106,19 +108,20 @@ int ServerMatrixORAM::retrieve_row_or_column(ZmqSocket_server& zmq_server) {
             fs.seekg((column_index + i * this->length_block_num) * (this->block_size * sizeof(TYPE_DATA) + IV_SIZE), std::ios::beg);
             fs.read(buffer_in_str.data(), this->block_size * sizeof(TYPE_DATA) + IV_SIZE);
             zmq_server.send(buffer_in_str);
+            zmq_server.recv(command_recv);
+            assert(command_recv == COMMAND_SUCCESS);
+            command_recv.clear();
         }
-        zmq_server.recv(command_recv);
-        assert(command_recv == COMMAND_SUCCESS);
-        command_recv.clear();
         buffer_in_str.clear();
+        zmq_server.send(COMMAND_SUCCESS);
         // step3 : receive the re-encrypted column from the client and store them in server.db
         for (TYPE_INDEX i = 0; i < this->length_block_num; ++i) {
             zmq_server.recv(buffer_in_str);
+            zmq_server.send(COMMAND_SUCCESS);
             fs.seekp((column_index + i * this->length_block_num) * (this->block_size * sizeof(TYPE_DATA) + IV_SIZE), std::ios::beg);
             fs.write(buffer_in_str.data(), this->block_size * sizeof(TYPE_DATA) + IV_SIZE);
         }
     }
-    zmq_server.send(COMMAND_SUCCESS);
     fs.close(); 
     return 0;
 }
