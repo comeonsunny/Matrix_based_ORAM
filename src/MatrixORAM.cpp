@@ -146,7 +146,7 @@ int MatrixORAM::test_initial_db(const std::string obj_str) {
     db_file.close();
     return 0;
 }
-int MatrixORAM::access(TYPE_INDEX blockID, TYPE_INDEX index, TYPE_DATA* data, bool is_write) {
+int MatrixORAM::access(TYPE_INDEX blockID, TYPE_INDEX index, TYPE_DATA* Data, bool is_write) {
     ZmqSocket_client zmq_client(SERVER_IP, SERVER_PORT);
     // send the command COMMAND_ACCESS to server and test the response COMMAND_SUCCESS
     zmq_client.send(COMMAND_ACCESS);
@@ -183,10 +183,12 @@ int MatrixORAM::access(TYPE_INDEX blockID, TYPE_INDEX index, TYPE_DATA* data, bo
         if (block_id == blockID) {
             block_index = i;
             // get the data from the block
-            memcpy((char*)data, block->get_data(), this->block_size * sizeof(TYPE_DATA));
+            memcpy((char*)Data, block->get_data(), this->block_size * sizeof(TYPE_DATA));
         }
         // write the data to the stash file
         stash_file.write(block->get_data(), this->block_size * sizeof(TYPE_DATA));
+        delete[] iv;
+        delete[] data;
     }
     stash_file.close();
     delete block;
@@ -214,7 +216,7 @@ int MatrixORAM::access(TYPE_INDEX blockID, TYPE_INDEX index, TYPE_DATA* data, bo
         stash_file_swap.write(buffer_swap, this->block_size * sizeof(TYPE_DATA));
         // write the data to the block at index random_int
         stash_file_swap.seekp(random_int * this->block_size * sizeof(TYPE_DATA), ios::beg);
-        stash_file_swap.write((char*)data, this->block_size * sizeof(TYPE_DATA));
+        stash_file_swap.write((char*)Data, this->block_size * sizeof(TYPE_DATA));
         delete[] buffer_swap;
     } else {
         block_id_swap = blockID;

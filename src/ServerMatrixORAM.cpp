@@ -106,9 +106,9 @@ int ServerMatrixORAM::retrieve_row_or_column(ZmqSocket_server& zmq_server) {
     } else {
         /*get the column_index from buffer_in_str*/
         TYPE_INDEX column_index = *(TYPE_INDEX*)buffer_in_str.c_str();
+        std::cout << "[server]column_index: " << column_index << std::endl;
         buffer_in_str.clear();
         /*read column block indexed by column_index from server.db and send them to the client*/
-        fs.seekg(column_index * (this->block_size * sizeof(TYPE_DATA) + IV_SIZE), std::ios::beg);
         for (TYPE_INDEX i = 0; i < this->length_block_num; ++i) {
             char* buffer = new char[this->block_size * sizeof(TYPE_DATA) + IV_SIZE];
             fs.seekg((column_index + i * this->length_block_num) * (this->block_size * sizeof(TYPE_DATA) + IV_SIZE), std::ios::beg);
