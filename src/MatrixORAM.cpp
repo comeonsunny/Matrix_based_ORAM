@@ -179,6 +179,7 @@ int MatrixORAM::access(TYPE_INDEX blockID, TYPE_INDEX index, TYPE_DATA* data, bo
         block->decrypt();
         // get the block_id from the decrypted data
         block_id = *(TYPE_INDEX*)block->get_data();
+        std::cout << "[MatrixORAM]block_id: " << block_id << std::endl;
         if (block_id == blockID) {
             block_index = i;
             // get the data from the block
