@@ -21,6 +21,6 @@ public:
     int build_db(vector<TYPE_INDEX>& shuffle_id);
     int send_db_to_server();
     int access(TYPE_INDEX blockID, TYPE_INDEX index, TYPE_DATA* data, bool is_write);
-    int test_initial_db();
+    int test_initial_db(const std::string obj_str);
 };
 #endif

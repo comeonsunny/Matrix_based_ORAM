@@ -29,7 +29,9 @@ int main(int argc, char *argv[]) {
         //=== Client ===============================================
         ClientMatrixORAM client(BLOCK_SIZE, DB_SIZE, REAL_BLOCK_NUM, LENGTH_BLOCK_NUM, TOTAL_BLOCK_NUM);
         client.initialize();
-        client.test_initial_db();
+        client.test_initial_db("client.db");
+        std::cout << "Client test finished" << std::endl;
+        client.test_initial_db("server.db");
         TYPE_DATA* data = new TYPE_DATA[BLOCK_SIZE];
         // for (TYPE_INDEX i = 0; i < REAL_BLOCK_NUM; i++) {
         //     client.access(i, data, false);

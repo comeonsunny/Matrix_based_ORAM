@@ -102,8 +102,8 @@ void ClientMatrixORAM::test() {
         cout << "row_index: " << position_map[i].row_index << " col_index: " << position_map[i].col_index << endl;
     }
 }
-int ClientMatrixORAM::test_initial_db() {
+int ClientMatrixORAM::test_initial_db(const std::string object_name) {
     MatrixORAM matrix_oram(this->block_size, this->db_size, this->real_block_num, this->length_block_num, this->total_block_num);
-    matrix_oram.test_initial_db();
+    matrix_oram.test_initial_db(object_name);
     return 0;
 }

@@ -109,8 +109,17 @@ int MatrixORAM::send_db_to_server() {
     std::cout << "**********************************************************" << std::endl;
     return 0;
 }
-int MatrixORAM::test_initial_db() {
-    std::ifstream db_file(p_db / "client.db", std::ios::in | std::ios::binary);
+int MatrixORAM::test_initial_db(const std::string obj_str) {
+    // open the obj_str file
+    std::ifstream db_file;
+    if (obj_str == "client.db") {
+        db_file.open(p_db / "client.db", std::ios::in | std::ios::binary);
+    } else if (obj_str == "server.db") {
+        db_file.open(p_db / "server.db", std::ios::in | std::ios::binary);
+    } else {
+        std::cout << "Error: the obj_str is not correct!" << std::endl;
+        return -1;
+    }
     if (!db_file.is_open()) {
         std::cout << "open client.db failed" << std::endl;
         return -1;
