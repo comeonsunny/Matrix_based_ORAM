@@ -5,6 +5,7 @@
 #include <random>
 #include <algorithm>
 #include <iostream>
+#include <cassert>
 using namespace std;
 ClientMatrixORAM::ClientMatrixORAM(TYPE_INDEX block_size, TYPE_INDEX db_size, TYPE_INDEX real_block_num, TYPE_INDEX length_block_num, TYPE_INDEX total_block_num) {
     this->block_size = block_size;
@@ -77,11 +78,16 @@ int ClientMatrixORAM::access(TYPE_INDEX blockID, TYPE_DATA* data, bool is_write)
         row_index = position_map[blockID].row_index;
         swap_block_index = matrix_oram.access(blockID, row_index, data, is_write);
         // update the position map
+        /*check the range of swap_block_index*/
+        std::cout << "swap_block_index: " << swap_block_index << std::endl;
+        assert(swap_block_index >= 0 && swap_block_index < this->length_block_num);
         swap(position_map[blockID].col_index, position_map[swap_block_index].col_index); 
     } else {
         col_index = position_map[blockID].col_index;
         swap_block_index = matrix_oram.access(blockID, col_index, data, is_write);
         // update the position map
+        /*check the range of swap_block_index*/
+        assert(swap_block_index >= 0 && swap_block_index < this->length_block_num);
         swap(position_map[blockID].row_index, position_map[swap_block_index].row_index);
     }
     IS_ROW = !IS_ROW;
