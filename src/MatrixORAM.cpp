@@ -77,22 +77,22 @@ int MatrixORAM::send_db_to_server() {
         char* buffer_out = new char[this->block_size * sizeof(TYPE_DATA) + IV_SIZE];
         // db_file.seekg(i * (this->block_size * sizeof(TYPE_DATA) + IV_SIZE), ios::beg);
         db_file.read(buffer_out, this->block_size * sizeof(TYPE_DATA) + IV_SIZE);
-        /* TEST */
-        Block* block = new Block(0, this->block_size);
-        char* iv = new char[IV_SIZE];
-        memcpy(iv, buffer_out, IV_SIZE);
-        block->set_iv((unsigned char*)iv);
-        char* data = new char[this->block_size * sizeof(TYPE_DATA)];
-        memcpy(data, buffer_out + IV_SIZE, this->block_size * sizeof(TYPE_DATA));
-        block->set_data(data);
-        block->decrypt();
-        // get the block_id from the buffer_out
-        TYPE_INDEX block_id = *(TYPE_INDEX*)block->get_data();
-        std::cout << "send block_id: " << block_id << std::endl;
-        delete block;
-        delete[] iv;
-        delete[] data;
-        /* TEST */
+        // /* TEST */
+        // Block* block = new Block(0, this->block_size);
+        // char* iv = new char[IV_SIZE];
+        // memcpy(iv, buffer_out, IV_SIZE);
+        // block->set_iv((unsigned char*)iv);
+        // char* data = new char[this->block_size * sizeof(TYPE_DATA)];
+        // memcpy(data, buffer_out + IV_SIZE, this->block_size * sizeof(TYPE_DATA));
+        // block->set_data(data);
+        // block->decrypt();
+        // // get the block_id from the buffer_out
+        // TYPE_INDEX block_id = *(TYPE_INDEX*)block->get_data();
+        // std::cout << "send block_id: " << block_id << std::endl;
+        // delete block;
+        // delete[] iv;
+        // delete[] data;
+        // /* TEST */
         /* 3.2 send the buffer_out to the server */
         // convert the buffer_out to std::string
         std::string buffer_out_str(buffer_out, this->block_size * sizeof(TYPE_DATA));

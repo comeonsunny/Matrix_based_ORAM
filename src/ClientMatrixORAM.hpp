@@ -21,5 +21,6 @@ public:
     int access(TYPE_INDEX blockID, TYPE_DATA* data, bool is_write);
 
     void test();
+    int test_initial_db();
 };
 # endif

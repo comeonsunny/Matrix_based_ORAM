@@ -76,6 +76,8 @@ int ClientMatrixORAM::access(TYPE_INDEX blockID, TYPE_DATA* data, bool is_write)
     TYPE_INDEX swap_block_index;
     if (IS_ROW) {
         row_index = position_map[blockID].row_index;
+        std::cout << "row_index: " << row_index << std::endl;
+        std::cout << "col_index: " << position_map[blockID].col_index << std::endl;
         swap_block_index = matrix_oram.access(blockID, row_index, data, is_write);
         // update the position map
         /*check the range of swap_block_index*/
@@ -99,4 +101,9 @@ void ClientMatrixORAM::test() {
     for (TYPE_INDEX i = 0; i < position_map.size(); i++) {
         cout << "row_index: " << position_map[i].row_index << " col_index: " << position_map[i].col_index << endl;
     }
+}
+int ClientMatrixORAM::test_initial_db() {
+    MatrixORAM matrix_oram(this->block_size, this->db_size, this->real_block_num, this->length_block_num, this->total_block_num);
+    matrix_oram.test_initial_db();
+    return 0;
 }
