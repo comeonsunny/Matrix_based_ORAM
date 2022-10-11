@@ -72,10 +72,14 @@ int ServerMatrixORAM::retrieve_row_or_column(ZmqSocket_server& zmq_server) {
     buffer_in_str.clear();
     // step1 : receive the row or column index from the client
     zmq_server.recv(buffer_in_str);
-    std::cout << "Test" << std::endl;
+    zmq_server.send(COMMAND_SUCCESS);
+    std::string is_row_str;
+    zmq_server.recv(is_row_str);
+    bool is_row = *(bool*)is_row_str.c_str();
+    std::cout << "[Server] is_row: " << is_row << std::endl;
     // step2 : check global variable of IS_ROW to know whether send the row or column to the client
     std::fstream fs(p / "server.db", std::ios::binary | std::ios::in | std::ios::out);
-    if (IS_ROW) {
+    if (is_row) {
         /*get the row_index from buffer_in_str*/
         TYPE_INDEX row_index = *(TYPE_INDEX*)buffer_in_str.c_str();
         std::cout << "[server]row_index: " << row_index << std::endl;

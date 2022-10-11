@@ -146,7 +146,7 @@ int MatrixORAM::test_initial_db(const std::string obj_str) {
     db_file.close();
     return 0;
 }
-int MatrixORAM::access(TYPE_INDEX blockID, TYPE_INDEX index, TYPE_DATA* Data, bool is_write) {
+int MatrixORAM::access(TYPE_INDEX blockID, TYPE_INDEX index, TYPE_DATA* Data, bool is_write, bool is_row) {
     ZmqSocket_client zmq_client(SERVER_IP, SERVER_PORT);
     // send the command COMMAND_ACCESS to server and test the response COMMAND_SUCCESS
     zmq_client.send(COMMAND_ACCESS);
@@ -156,9 +156,12 @@ int MatrixORAM::access(TYPE_INDEX blockID, TYPE_INDEX index, TYPE_DATA* Data, bo
     // send the index to server and test the response COMMAND_SUCCESS
     std::string index_str((char*)&index, sizeof(TYPE_INDEX));
     zmq_client.send(index_str);
-    // zmq_client.recv(command_recv);
-    // assert(command_recv == COMMAND_SUCCESS); 
-    // command_recv.clear();
+    zmq_client.recv(command_recv);
+    assert(command_recv == COMMAND_SUCCESS); 
+    command_recv.clear();
+    std::string is_row_str((char*)&is_row, sizeof(bool));
+    std::cout << "is_row: " << is_row << std::endl;
+    zmq_client.send(is_row_str);
     // receive a row or a column blocks from server and decrypt them and store them in the stash file
     std::string buffer_in;
     fs::path p_stash = p_db / "stash.temp";

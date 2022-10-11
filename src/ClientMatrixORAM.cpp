@@ -69,16 +69,16 @@ int ClientMatrixORAM::initialize() {
  * 
  * @return 0 if successful
  */ 
-int ClientMatrixORAM::access(TYPE_INDEX blockID, TYPE_DATA* data, bool is_write) {
+int ClientMatrixORAM::access(TYPE_INDEX blockID, TYPE_DATA* data, bool is_write, bool is_row) {
     // gain the index of interested block's row or column in the position map
     TYPE_INDEX row_index, col_index;
     MatrixORAM matrix_oram(this->block_size, this->db_size, this->real_block_num, this->length_block_num, this->total_block_num);
     TYPE_INDEX swap_block_index;
-    if (IS_ROW) {
+    if (is_row) {
         row_index = position_map[blockID].row_index;
         std::cout << "row_index: " << row_index << std::endl;
         std::cout << "col_index: " << position_map[blockID].col_index << std::endl;
-        swap_block_index = matrix_oram.access(blockID, row_index, data, is_write);
+        swap_block_index = matrix_oram.access(blockID, row_index, data, is_write, is_row);
         // update the position map
         /*check the range of swap_block_index*/
         std::cout << "swap_block_index: " << swap_block_index << std::endl;
@@ -86,13 +86,12 @@ int ClientMatrixORAM::access(TYPE_INDEX blockID, TYPE_DATA* data, bool is_write)
         swap(position_map[blockID].col_index, position_map[swap_block_index].col_index); 
     } else {
         col_index = position_map[blockID].col_index;
-        swap_block_index = matrix_oram.access(blockID, col_index, data, is_write);
+        swap_block_index = matrix_oram.access(blockID, col_index, data, is_write, is_row);
         // update the position map
         /*check the range of swap_block_index*/
         assert(swap_block_index >= 0 && swap_block_index < this->total_block_num);
         swap(position_map[blockID].row_index, position_map[swap_block_index].row_index);
     }
-    IS_ROW = !IS_ROW;
     return 0;
 }
 

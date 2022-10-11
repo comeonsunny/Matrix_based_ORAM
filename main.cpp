@@ -33,10 +33,17 @@ int main(int argc, char *argv[]) {
         std::cout << "Client test finished" << std::endl;
         client.test_initial_db("server.db");
         TYPE_DATA* data = new TYPE_DATA[BLOCK_SIZE];
+        bool is_row = true;
         for (TYPE_INDEX i = 0; i < REAL_BLOCK_NUM; i++) {
-            client.access(i, data, false);
+            cout << "Access block " << i << endl;
+            client.access(i, data, false, is_row);
             TYPE_INDEX index = *(TYPE_INDEX*)data;
             cout << "index: " << index << endl;
+            if (index != i) {
+                cout << "Error: index != i" << endl;
+                break;
+            }
+            is_row = !is_row;
         }
     } else if (choice == 2) {
         //=== Server ===============================================
