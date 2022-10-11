@@ -42,7 +42,7 @@ int MatrixORAM::build_db(vector<TYPE_INDEX>& shuffle_id) {
         block->encrypt();
         /* 2 store block's data into specific position in the file based on its blockID */
         // // move the file pointer to the specific position
-        db_file.seekp(shuffle_id[i] * (this->block_size * sizeof(TYPE_INDEX) + IV_SIZE), std::ios::beg);
+        db_file.seekp(shuffle_id[i] * (this->block_size * sizeof(TYPE_DATA) + IV_SIZE), std::ios::beg);
         // first write the iv
         db_file.write((char*)block->get_iv(), IV_SIZE);
         // then write the data
@@ -77,22 +77,22 @@ int MatrixORAM::send_db_to_server() {
         char* buffer_out = new char[this->block_size * sizeof(TYPE_DATA) + IV_SIZE];
         // db_file.seekg(i * (this->block_size * sizeof(TYPE_DATA) + IV_SIZE), ios::beg);
         db_file.read(buffer_out, this->block_size * sizeof(TYPE_DATA) + IV_SIZE);
-        // /* TEST */
-        // Block* block = new Block(0, this->block_size);
-        // char* iv = new char[IV_SIZE];
-        // memcpy(iv, buffer_out, IV_SIZE);
-        // block->set_iv((unsigned char*)iv);
-        // char* data = new char[this->block_size * sizeof(TYPE_DATA)];
-        // memcpy(data, buffer_out + IV_SIZE, this->block_size * sizeof(TYPE_DATA));
-        // block->set_data(data);
-        // block->decrypt();
-        // // get the block_id from the buffer_out
-        // TYPE_INDEX block_id = *(TYPE_INDEX*)block->get_data();
-        // std::cout << "send block_id: " << block_id << std::endl;
-        // delete block;
-        // delete[] iv;
-        // delete[] data;
-        // /* TEST */
+        /* TEST */
+        Block* block = new Block(0, this->block_size);
+        char* iv = new char[IV_SIZE];
+        memcpy(iv, buffer_out, IV_SIZE);
+        block->set_iv((unsigned char*)iv);
+        char* data = new char[this->block_size * sizeof(TYPE_DATA)];
+        memcpy(data, buffer_out + IV_SIZE, this->block_size * sizeof(TYPE_DATA));
+        block->set_data(data);
+        block->decrypt();
+        // get the block_id from the buffer_out
+        TYPE_INDEX block_id = *(TYPE_INDEX*)block->get_data();
+        std::cout << "send block_id: " << block_id << std::endl;
+        delete block;
+        delete[] iv;
+        delete[] data;
+        /* TEST */
         /* 3.2 send the buffer_out to the server */
         // convert the buffer_out to std::string
         std::string buffer_out_str(buffer_out, this->block_size * sizeof(TYPE_DATA));
@@ -107,6 +107,34 @@ int MatrixORAM::send_db_to_server() {
     db_file.close();
     std::cout << std::endl;
     std::cout << "**********************************************************" << std::endl;
+    return 0;
+}
+int MatrixORAM::test_initial_db() {
+    std::ifstream db_file(p_db / "client.db", std::ios::in | std::ios::binary);
+    if (!db_file.is_open()) {
+        std::cout << "open client.db failed" << std::endl;
+        return -1;
+    }
+    for (TYPE_INDEX i = 0; i < this->total_block_num; ++i) {
+        char* buffer_out = new char[this->block_size * sizeof(TYPE_DATA) + IV_SIZE];
+        db_file.read(buffer_out, this->block_size * sizeof(TYPE_DATA) + IV_SIZE);
+        Block* block = new Block(0, this->block_size);
+        char* iv = new char[IV_SIZE];
+        memcpy(iv, buffer_out, IV_SIZE);
+        block->set_iv((unsigned char*)iv);
+        char* data = new char[this->block_size * sizeof(TYPE_DATA)];
+        memcpy(data, buffer_out + IV_SIZE, this->block_size * sizeof(TYPE_DATA));
+        block->set_data(data);
+        block->decrypt();
+        // get the block_id from the buffer_out
+        TYPE_INDEX block_id = *(TYPE_INDEX*)block->get_data();
+        std::cout << "block_id: " << block_id << std::endl;
+        delete block;
+        delete[] iv;
+        delete[] data;
+        delete[] buffer_out;
+    }
+    db_file.close();
     return 0;
 }
 int MatrixORAM::access(TYPE_INDEX blockID, TYPE_INDEX index, TYPE_DATA* data, bool is_write) {
@@ -164,6 +192,8 @@ int MatrixORAM::access(TYPE_INDEX blockID, TYPE_INDEX index, TYPE_DATA* data, bo
     fstream stash_file_swap(p_stash, ios::in | ios::out | ios::binary);
     TYPE_INDEX block_id_swap;
     if (block_index != random_int) {
+        std::cout << "block_index: " << block_index << std::endl;
+        std::cout << "random_int: " << random_int << std::endl;
         char* buffer_swap = new char[this->block_size * sizeof(TYPE_DATA)];
         // read the block at index random_int to the buffer_swap
         stash_file_swap.seekg(random_int * this->block_size * sizeof(TYPE_DATA), ios::beg);
