@@ -1,6 +1,7 @@
 #include <iostream>
 #include <cmath>
 #include <cstring>
+#include <random>
 #include "src/Config.hpp"
 #include "src/ClientMatrixORAM.hpp"
 #include "src/ServerMatrixORAM.hpp"
@@ -28,26 +29,47 @@ int main(int argc, char *argv[]) {
     if (choice == 1) {
         //=== Client ===============================================
         ClientMatrixORAM client(BLOCK_SIZE, DB_SIZE, REAL_BLOCK_NUM, LENGTH_BLOCK_NUM, TOTAL_BLOCK_NUM);
+        cout << "===========================================================" << endl;
+        cout << "[Main]Client is initializing..." << endl;
+        cout << "===========================================================" << endl;
         client.initialize();
-        // client.test_initial_db("client.db");
-        std::cout << "Client test finished" << std::endl;
-        client.test_initial_db("server.db");
+        // // client.test_initial_db("client.db");
+        // std::cout << "Client test finished" << std::endl;
+        // client.test_initial_db("server.db");
         TYPE_DATA* data = new TYPE_DATA[BLOCK_SIZE];
         bool is_row = true;
-        for (TYPE_INDEX i = 0; i < REAL_BLOCK_NUM; i++) {
-            cout << "Access block " << i << endl;
-            client.access(i, data, false, is_row);
+beginning:
+        cout << "How many times do you want to access the block of interest: ";
+        TYPE_INDEX times;
+        cin >> times;
+        cout << "===========================================================" << endl;
+        cout << "[Main]Client is accessing randomly..." << endl;
+        cout << "===========================================================" << endl << endl;
+        for (TYPE_INDEX i = 0; i < times; ++i) {
+            // Generate a random integer range from 0 to REAL_BLOCK_NUM - 1
+            std::random_device rd;
+            std::mt19937 gen(rd());
+            std::uniform_int_distribution<> dis(0, REAL_BLOCK_NUM - 1);
+            TYPE_INDEX block_id = dis(gen);
+            cout << "Accessing block " << block_id << endl;
+            client.access(block_id, data, false, is_row);
             TYPE_INDEX index = *(TYPE_INDEX*)data;
             cout << "index: " << index << endl;
-            if (index != i) {
+            if (index != block_id) {
                 cout << "Error: index != i" << endl;
                 break;
             }
             is_row = !is_row;
+            cout << "===========================================================" << endl;
         }
+        cout << "===========================================================" << endl;
+        goto beginning;
     } else if (choice == 2) {
         //=== Server ===============================================
         ServerMatrixORAM server(BLOCK_SIZE, DB_SIZE, REAL_BLOCK_NUM, LENGTH_BLOCK_NUM, TOTAL_BLOCK_NUM);
+        cout << "===========================================================" << endl;
+        cout << "[Main]Server is running" << endl;
+        cout << "===========================================================" << endl;
         server.run();
     }
     return 0;
