@@ -77,22 +77,22 @@ int MatrixORAM::send_db_to_server() {
         char* buffer_out = new char[this->block_size * sizeof(TYPE_DATA) + IV_SIZE];
         // db_file.seekg(i * (this->block_size * sizeof(TYPE_DATA) + IV_SIZE), ios::beg);
         db_file.read(buffer_out, this->block_size * sizeof(TYPE_DATA) + IV_SIZE);
-        // /* TEST */
-        // Block* block = new Block(0, this->block_size);
-        // char* iv = new char[IV_SIZE];
-        // memcpy(iv, buffer_out, IV_SIZE);
-        // block->set_iv((unsigned char*)iv);
-        // char* data = new char[this->block_size * sizeof(TYPE_DATA)];
-        // memcpy(data, buffer_out + IV_SIZE, this->block_size * sizeof(TYPE_DATA));
-        // block->set_data(data);
-        // block->decrypt();
-        // // get the block_id from the buffer_out
-        // TYPE_INDEX block_id = *(TYPE_INDEX*)block->get_data();
-        // std::cout << "send block_id: " << block_id << std::endl;
-        // delete block;
-        // delete[] iv;
-        // delete[] data;
-        // /* TEST */
+        /* TEST */
+        Block* block = new Block(0, this->block_size);
+        char* iv = new char[IV_SIZE];
+        memcpy(iv, buffer_out, IV_SIZE);
+        block->set_iv((unsigned char*)iv);
+        char* data = new char[this->block_size * sizeof(TYPE_DATA)];
+        memcpy(data, buffer_out + IV_SIZE, this->block_size * sizeof(TYPE_DATA));
+        block->set_data(data);
+        block->decrypt();
+        // get the block_id from the buffer_out
+        TYPE_INDEX block_id = *(TYPE_INDEX*)block->get_data();
+        std::cout << "send block_id: " << block_id << std::endl;
+        delete block;
+        delete[] iv;
+        delete[] data;
+        /* TEST */
         /* 3.2 send the buffer_out to the server */
         // convert the buffer_out to std::string
         std::string buffer_out_str(buffer_out, this->block_size * sizeof(TYPE_DATA));
@@ -149,7 +149,9 @@ int MatrixORAM::test_initial_db(const std::string obj_str) {
 int MatrixORAM::access(TYPE_INDEX blockID, TYPE_INDEX index, TYPE_DATA* Data, bool is_write, bool is_row) {
     ZmqSocket_client zmq_client(SERVER_IP, SERVER_PORT);
     // send the command COMMAND_ACCESS to server and test the response COMMAND_SUCCESS
+    std::cout << "Before send COMMAND_ACCESS" << std::endl;
     zmq_client.send(COMMAND_ACCESS);
+    std::cout << "After send COMMAND_ACCESS" << std::endl;
     zmq_client.recv(command_recv);
     assert(command_recv == COMMAND_SUCCESS);
     command_recv.clear();
@@ -182,7 +184,7 @@ int MatrixORAM::access(TYPE_INDEX blockID, TYPE_INDEX index, TYPE_DATA* Data, bo
         block->decrypt();
         // get the block_id from the decrypted data
         block_id = *(TYPE_INDEX*)block->get_data();
-        std::cout << "[MatrixORAM]block_id: " << block_id << std::endl;
+        // std::cout << "[MatrixORAM]block_id: " << block_id << std::endl;
         if (block_id == blockID) {
             block_index = i;
             // get the data from the block

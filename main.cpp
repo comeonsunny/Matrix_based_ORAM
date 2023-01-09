@@ -14,8 +14,8 @@ int main(int argc, char *argv[]) {
     static TYPE_INDEX BLOCK_SIZE;  // in bytes >= 8
     static TYPE_INDEX DB_SIZE;  // in bytes
     if (argc > 3) {
-        BLOCK_SIZE = atoi(argv[1]) * 1024ull;
-        DB_SIZE = atoi(argv[2]) * 1024ull;
+        DB_SIZE = atoi(argv[1]) * 1024ull * 1024ull;
+        BLOCK_SIZE = atoi(argv[2]) * 1024ull;
         choice = atoi(argv[3]);
     }
     static TYPE_INDEX REAL_BLOCK_NUM = ceil((double)DB_SIZE / (BLOCK_SIZE * sizeof(TYPE_DATA)));
@@ -50,7 +50,8 @@ beginning:
             std::random_device rd;
             std::mt19937 gen(rd());
             std::uniform_int_distribution<> dis(0, REAL_BLOCK_NUM - 1);
-            TYPE_INDEX block_id = dis(gen);
+            // TYPE_INDEX block_id = dis(gen);
+            TYPE_INDEX block_id = 0;
             cout << "Accessing block " << block_id << endl;
             client.access(block_id, data, false, is_row);
             TYPE_INDEX index = *(TYPE_INDEX*)data;

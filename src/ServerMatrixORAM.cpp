@@ -19,9 +19,9 @@ ServerMatrixORAM::ServerMatrixORAM(TYPE_INDEX block_size, TYPE_INDEX db_size, TY
 ServerMatrixORAM::~ServerMatrixORAM(){
 }
 int ServerMatrixORAM::run(){
+    ZmqSocket_server zmq_server(SERVER_PORT);
     std::cout<< "[Server] Socket is OPEN on << " << SERVER_IP << ":" << SERVER_PORT << std::endl;
     while (true) {
-        ZmqSocket_server zmq_server(SERVER_PORT);
         std::cout << "[Server] Waiting for a command from client..." << std::endl;
         zmq_server.recv(command_recv);
         std::cout << "[Server] Received command: " << command_recv << std::endl;

@@ -14,6 +14,7 @@ public:
     ~ZmqSocket_client();
     int send(std::string data);
     int recv(std::string& data);
+    int disconnect();
 };
 class ZmqSocket_server {
 private:

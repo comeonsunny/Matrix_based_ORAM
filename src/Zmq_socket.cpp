@@ -4,6 +4,7 @@ ZmqSocket_client::ZmqSocket_client(std::string ip, std::string port) {
     socket.connect(address);
 }
 ZmqSocket_client::~ZmqSocket_client() {
+    socket.disconnect(address);
 }
 int ZmqSocket_client::send(std::string data) {
     socket.send(zmq::buffer(data), zmq::send_flags::none);
@@ -20,6 +21,7 @@ ZmqSocket_server::ZmqSocket_server(std::string port) {
     socket.bind(address);
 }
 ZmqSocket_server::~ZmqSocket_server() {
+    // socket.unbind(address);
 }
 int ZmqSocket_server::send(std::string data) {
     socket.send(zmq::buffer(data), zmq::send_flags::none);
